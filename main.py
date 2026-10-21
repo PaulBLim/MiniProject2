@@ -18,14 +18,16 @@ async def get_task_or_404(task_id):
 
 @app.post("/tasks")
 async def create_task(task: TaskCreate) -> Task:
-    new_id =max(tasks, default=0) + 1
+    new_id = max(tasks, default=0) + 1
     task = Task(id=new_id, **task.model_dump())
     tasks[new_id] = task
     return task
 
 @app.get("/tasks/{task_id}")
 async def get_task(task_id: int) -> Task:
-  return tasks[task_id]
+  task = get_task_or_404(task_id)
+  return task
+  
 
 @app.put("/tasks/{task_id}")
 async def update_task(task_id: int, task: TaskUpdate) -> Task:
