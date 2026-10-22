@@ -1,7 +1,6 @@
 from models import TaskCreate, TaskStatus, TaskUpdate, Task, TaskPriority
 from fastapi import FastAPI, HTTPException, status
 from datetime import date
-
 app = FastAPI(title="Task Manager", description="A simple task manager API")
 
 tasks: dict[int, Task] = {}
@@ -67,9 +66,9 @@ def seed_tasks() -> None:
 seed_tasks()
 
 
-@app.get("/tasks")
-async def get_tasks() -> list[Task]:
-  return list(tasks.values())
+# @app.get("/tasks")
+# async def get_tasks() -> list[Task]:
+#   return list(tasks.values())
 
 async def get_task_or_404(task_id):
     task = tasks.get(task_id)
@@ -89,18 +88,18 @@ async def get_task(task_id: int) -> Task:
   task = await get_task_or_404(task_id)
   return task
 
-@app.get("/tasks/")
-async def read_task(status: TaskStatus = 'done', priority: TaskPriority = 'high') -> Task:
+@app.get("/tasks")
+async def read_task(status: TaskStatus = 'done', priority: TaskPriority = 'high', tags: str | None = None, q: str | None = None) -> list[Task]:
   tasks_list = []
   for task in tasks.values():
     if status and task.status != status:
       continue
     if priority and task.priority != priority:
       continue
-    # if tags and task.tags != tags:
-    #   continue
-    # if q and q not in task.title:
-    #   continue
+    if tags and tags not in task.tags:
+      continue
+    if q and q not in task.title and q not in task.description:
+      continue
     tasks_list.append(task)
   return tasks_list
 
@@ -112,16 +111,16 @@ async def update_task(task_id: int, task: TaskUpdate) -> Task:
   task.completed = task.completed or task.completed
   return task
 
-@app.delete("/tasks/{task_id}")
-async def delete_task(task_id: int) -> dict:
-  await get_task_or_404(task_id)
-  task = tasks.pop(task_id)
-  return {"message": "Task deleted successfully", "task": task.title}
+# @app.delete("/tasks/{task_id}")
+# async def delete_task(task_id: int) -> dict:
+#   await get_task_or_404(task_id)
+#   task = tasks.pop(task_id)
+#   return {"message": "Task deleted successfully", "task": task.title}
 
 @app.delete("/tasks/{task_title}")
 async def delete_task_by_title(task_title: str) -> dict:
   for task in tasks.values():
-    if task.title == task_title:
+    if task.title.lower() == task_title.lower():
       tasks.pop(task.id)
       return {"message": "Task deleted successfully", "task": task.title}
   raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Task not found")
