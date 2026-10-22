@@ -66,9 +66,20 @@ def seed_tasks() -> None:
 seed_tasks()
 
 
-# @app.get("/tasks")
-# async def get_tasks() -> list[Task]:
-#   return list(tasks.values())
+@app.get("/tasks")
+async def read_task(status: None | TaskStatus = None, priority: None | TaskPriority = None, tags: None | str = None, q: None | str = None) -> list[Task]:
+  tasks_list = []
+  for task in tasks.values():
+    if status is not None and task.status != status:
+      continue
+    if priority is not None and task.priority != priority:
+      continue
+    if tags is not None and tags not in task.tags:
+      continue
+    if q is not None and q not in task.title and q not in task.description:
+      continue
+    tasks_list.append(task)
+  return tasks_list
 
 async def get_task_or_404(task_id):
     task = tasks.get(task_id)
@@ -88,20 +99,7 @@ async def get_task(task_id: int) -> Task:
   task = await get_task_or_404(task_id)
   return task
 
-@app.get("/tasks")
-async def read_task(status: TaskStatus = 'done', priority: TaskPriority = 'high', tags: str | None = None, q: str | None = None) -> list[Task]:
-  tasks_list = []
-  for task in tasks.values():
-    if status and task.status != status:
-      continue
-    if priority and task.priority != priority:
-      continue
-    if tags and tags not in task.tags:
-      continue
-    if q and q not in task.title and q not in task.description:
-      continue
-    tasks_list.append(task)
-  return tasks_list
+
 
 @app.put("/tasks/{task_id}")
 async def update_task(task_id: int, task: TaskUpdate) -> Task:
