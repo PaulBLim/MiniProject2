@@ -72,7 +72,7 @@ async def create_task(task: TaskCreate) -> Task:
     tasks[new_id] = task
     return task
 
-    
+
 @app.get("/tasks")
 async def get_tasks(status: None | TaskStatus = None, priority: None | TaskPriority = None, tags: None | str = None, q: None | str = None) -> list[Task]:
   tasks_list = []
@@ -102,18 +102,14 @@ async def get_task_by_id(task_id: int) -> Task:
 
 
 @app.put("/tasks/{task_id}")
-async def update_task(task_id: int, task: TaskUpdate) -> Task:
-  task = await get_task_or_404(task_id)
-  task.title = task.title or task.title
-  task.description = task.description or task.description
-  task.completed = task.completed or task.completed
-  return task
-
-# @app.delete("/tasks/{task_id}")
-# async def delete_task(task_id: int) -> dict:
-#   await get_task_or_404(task_id)
-#   task = tasks.pop(task_id)
-#   return {"message": "Task deleted successfully", "task": task.title}
+async def update_task(task_id: int, task_update: TaskUpdate) -> Task:
+  current = await get_task_or_404(task_id)
+  changes = task_update.model_dump(exclude_unset=True, exclude_none=True)
+  if "created_at" not in task_update.model_fields_set:
+    changes["created_at"] = date.today()
+  updated = current.model_copy(update=changes)
+  tasks[task_id] = updated
+  return updated
 
 @app.delete("/tasks/{task_key}")
 async def delete_task(task_key: str) -> dict:
@@ -127,17 +123,3 @@ async def delete_task(task_key: str) -> dict:
             tasks.pop(task.id)
             return {"message": "Task deleted successfully", "task": task.title}
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Task not found")
-
-
-# @app.delete("/tasks/{task_key}")
-# async def delete_task(task_key: str) -> dict:
-#   if task_key.isdigit():
-#     task = await get_task_or_404(int(task_key))
-#     tasks.pop(task.id)
-#     return {"message": "Task deleted successfully", "task": task.title}
-
-#   for task in list(tasks.values()):
-#     if task.title.lower() == task_key.lower():
-#       tasks.pop(task.id)
-#       return {"message": "Task deleted successfully", "task": task.title}
-#   raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Task not found")
