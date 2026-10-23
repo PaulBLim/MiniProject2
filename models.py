@@ -19,9 +19,10 @@ def date_validator(date: date) -> date:
 
 Tittle = Annotated[str, Field(min_length=1, max_length=50), AfterValidator(title_validator)]
 Date = Annotated[date, AfterValidator(date_validator)]
+Description = Annotated[str, Field(default="", min_length=1, max_length=200)]
 class TaskCreate(BaseModel):
   title: Tittle
-  description: str
+  description: Description
   status: TaskStatus = 'todo'
   priority: TaskPriority = "low"
   tags: list = []
@@ -34,6 +35,7 @@ class Task(TaskCreate):
 class TaskUpdate(BaseModel):
   model_config = ConfigDict(extra="forbid")
   title: Tittle | None = None
+  description: Description | None = None
   status: TaskStatus | None = None
   priority: TaskPriority | None = None
   tags: list | None = None
