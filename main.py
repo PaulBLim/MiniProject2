@@ -1,4 +1,4 @@
-from models import TaskCreate, TaskStatus, TaskUpdate, Task, TaskPriority
+from models import TaskCreate, TaskStatus, TaskUpdate, Task, TaskPriority, Tittle
 from fastapi import FastAPI, HTTPException, status
 from datetime import date
 app = FastAPI(title="Task Manager", description="A simple task manager API")
@@ -111,15 +111,17 @@ async def update_task(task_id: int, task_update: TaskUpdate) -> Task:
   tasks[task_id] = updated
   return updated
 
-@app.delete("/tasks/{task_key}")
-async def delete_task(task_key: str) -> dict:
-    if task_key.isdigit():
-        task = await get_task_or_404(int(task_key))
-        tasks.pop(task.id)
-        return {"message": "Task deleted successfully", "task": task.title}
-    
-    for task in list(tasks.values()):
-        if task.title.lower() == task_key.lower():
-            tasks.pop(task.id)
-            return {"message": "Task deleted successfully", "task": task.title}
-    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Task not found")
+
+@app.delete("/tasks/{task_id}")
+async def delete_task(task_id: int) -> dict:
+  task = await get_task_or_404(task_id)
+  tasks.pop(task_id)
+  return {"message": "Task deleted successfully", "task": task.title}
+
+@app.delete("/tasks/title/{task_title}")
+async def delete_task_by_title(task_title: Tittle) -> dict:
+  for task in tasks.values():
+    if task.title.lower() == task_title.lower():
+      tasks.pop(task.id)
+      return {"message": "Task deleted successfully", "task": task.title}
+  raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Task not found")
