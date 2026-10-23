@@ -6,7 +6,6 @@ app = FastAPI(title="Task Manager", description="A simple task manager API")
 tasks: dict[int, Task] = {}
 
 def seed_tasks() -> None:
-    global tasks 
     tasks.clear()
     tasks[1] = Task(
         id=1,
@@ -74,16 +73,18 @@ async def create_task(task: TaskCreate) -> Task:
 
 
 @app.get("/tasks")
-async def get_tasks(status: None | TaskStatus = None, priority: None | TaskPriority = None, tags: None | str = None, q: None | str = None) -> list[Task]:
+async def get_tasks(status: None | TaskStatus = None, priority: None | TaskPriority = None, tag: None | str = None, search: None | str = None) -> list[Task]:
+  tag_cleaned = tag.strip().lower() if tag else ""
+  search_cleaned = search.strip().lower() if search else ""
   tasks_list = []
   for task in tasks.values():
     if status is not None and task.status != status:
       continue
     if priority is not None and task.priority != priority:
       continue
-    if tags is not None and tags not in task.tags:
+    if tag_cleaned and tag_cleaned not in {item.lower() for item in task.tags}:
       continue
-    if q is not None and q not in task.title and q not in task.description:
+    if search_cleaned and search_cleaned not in task.title.lower() and search_cleaned not in task.description.lower():
       continue
     tasks_list.append(task)
   return tasks_list
