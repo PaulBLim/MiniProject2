@@ -12,15 +12,20 @@ def title_validator(title: str) -> str:
     raise ValueError("Title cannot be empty")
   return title
 
-Tittle = Annotated[str, Field(min_length=1, max_length=50), AfterValidator(title_validator)]
+def date_validator(date: date) -> date:
+  if date > date.today():
+    raise ValueError("Date cannot be in the future")
+  return date
 
+Tittle = Annotated[str, Field(min_length=1, max_length=50), AfterValidator(title_validator)]
+Date = Annotated[date, AfterValidator(date_validator)]
 class TaskCreate(BaseModel):
   title: Tittle
   description: str
   status: TaskStatus = 'todo'
   priority: TaskPriority = "low"
   tags: list = []
-  created_at: date = Field(default_factory=date.today)
+  created_at: Date = Field(default_factory=date.today)
 
 
 class Task(TaskCreate):

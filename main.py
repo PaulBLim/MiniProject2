@@ -23,7 +23,7 @@ def seed_tasks() -> None:
         status="in_progress",
         priority="low",
         tags=["shopping"],
-        created_at=date(2026, 10, 22),
+        created_at=date(2026, 2, 22),
     )
     tasks[3] = Task(
         id=3,
@@ -32,7 +32,7 @@ def seed_tasks() -> None:
         status="in_progress",
         priority="medium",
         tags=["shopping"],
-        created_at=date(2026, 10, 22),
+        created_at=date(2025, 10, 22),
     )
     tasks[4] = Task(
         id=4,
@@ -50,7 +50,7 @@ def seed_tasks() -> None:
         status="done",
         priority="medium",
         tags=["shopping"],
-        created_at=date(2026, 10, 30),
+        created_at=date(2023, 11, 30),
     )
     tasks[6] = Task(
         id=6,
@@ -59,12 +59,12 @@ def seed_tasks() -> None:
         status="todo",
         priority="medium",
         tags=["house", "important", "project", "improvements"],
-        created_at=date(2026, 10, 22),
+        created_at=date(2024, 4, 22),
     )
 
 seed_tasks()
 
-@app.post("/tasks")
+@app.post("/tasks", status_code = status.HTTP_201_CREATED)
 async def create_task(task: TaskCreate) -> Task:
     new_id = max(tasks, default=0) + 1
     task = Task(id=new_id, **task.model_dump())
