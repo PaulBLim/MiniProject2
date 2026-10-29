@@ -1,4 +1,4 @@
-from models import TaskCreate, TaskStatus, TaskUpdate, Task, TaskPriority, Tittle
+from app.models import TaskCreate, TaskStatus, TaskUpdate, Task, TaskPriority, Tittle
 from fastapi import FastAPI, HTTPException, status
 from datetime import date
 app = FastAPI(title="Task Manager", description="A simple task manager API")

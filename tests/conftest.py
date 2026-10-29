@@ -1,4 +1,4 @@
-import main
+import app.main as main
 import pytest
 from fastapi.testclient import TestClient
 

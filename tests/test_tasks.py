@@ -1,11 +1,11 @@
-from main import TaskCreate
+from app.main import TaskCreate
 from pydantic import ValidationError
 import pytest
 from datetime import date, timedelta
 from fastapi.testclient import TestClient
-from main import app
-from models import TaskUpdate
-import main
+from app.main import app
+from app.models import TaskUpdate
+import app.main as main
 
 client = TestClient(app)
 
