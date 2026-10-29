@@ -19,10 +19,10 @@ def date_validator(date: date) -> date:
 
 Tittle = Annotated[str, Field(min_length=1, max_length=50), AfterValidator(title_validator)]
 Date = Annotated[date, AfterValidator(date_validator)]
-Description = Annotated[str, Field(default="", min_length=1, max_length=200)]
+Description = Annotated[str, Field( max_length=200)]
 class TaskCreate(BaseModel):
   title: Tittle
-  description: Description
+  description: Description = ""
   status: TaskStatus = 'todo'
   priority: TaskPriority = "low"
   tags: list = []
@@ -39,4 +39,4 @@ class TaskUpdate(BaseModel):
   status: TaskStatus | None = None
   priority: TaskPriority | None = None
   tags: list | None = None
-  created_at: date | None = None
+  created_at: Date | None = None
