@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+
+{% block title %}Tasks | Task Manager{% endblock %}
+
+{% block content %}
+<section class="task-form">
+    <h1>Create a task</h1>
+
+    <form action="{{ url_for('create_task_from_form') }}" method="post">
+        <div class="form-field">
+            <label for="title">Title</label>
+            <input
+                id="title"
+                name="title"
+                type="text"
+                maxlength="50"
+                required
+            >
+        </div>
+
+        <div class="form-field">
+            <label for="description">Description</label>
+            <textarea
+                id="description"
+                name="description"
+                maxlength="200"
+            ></textarea>
+        </div>
+
+        <div class="form-field small-field">
+            <label for="task_status">Status</label>
+            <select id="task_status" name="task_status">
+                <option value="todo">To do</option>
+                <option value="in_progress">In progress</option>
+                <option value="done">Done</option>
+            </select>
+        </div>
+
+        <div class="form-field small-field">
+            <label for="priority">Priority</label>
+            <select id="priority" name="priority">
+                <option value="low">Low</option>
+                <option value="medium">Medium</option>
+                <option value="high">High</option>
+            </select>
+        </div>
+
+        <div class="form-field">
+            <label for="tags">Tags</label>
+            <input
+                id="tags"
+                name="tags"
+                type="text"
+                placeholder="work, important, study"
+            >
+        </div>
+
+        <button type="submit">Create task</button>
+    </form>
+</section>
+
+<section>
+    <h2>All tasks</h2>
+
+    {% if tasks %}
+        <div class="tasks">
+            {% for task in tasks %}
+            <details class="task">
+                <summary class="task-summary">
+                    <span class="task-title">{{ task.title }}</span>
+
+                    <span class="status status-{{ task.status }}">
+                        {{ task.status.replace("_", " ").title() }}
+                    </span>
+
+                    <button
+                        type="button"
+                        class="delete-button"
+                        data-task-id="{{ task.id }}"
+                    >
+                        Delete task
+                    </button>
+                </summary>
+            
+                <div class="task-details">
+                    <p>{{ task.description or "No description" }}</p>
+                    <p>
+                        <strong>Priority:</strong>
+                        {{ task.priority.title() }}
+                    </p>
+            
+                    {% if task.tags %}
+                        <p>
+                            <strong>Tags:</strong>
+                            {{ task.tags | join(", ") }}
+                        </p>
+                    {% endif %}
+            
+                    <small>Created: {{ task.created_at }}</small>
+                </div>
+            </details>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p>No tasks have been created yet.</p>
+    {% endif %}
+</section>
+
+<script>
+    const deleteButtons = document.querySelectorAll(".delete-button");
+
+    deleteButtons.forEach((button) => {
+        button.addEventListener("click", async () => {
+            const taskId = button.dataset.taskId;
+
+            const confirmed = confirm(
+                "Are you sure you want to delete this task?"
+            );
+
+            if (!confirmed) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/tasks/${taskId}`, {
+                    method: "DELETE"
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.detail || "Could not delete task");
+                }
+
+                button.closest(".task").remove();
+            } catch (error) {
+                alert(error.message);
+            }
+        });
+    });
+</script>
+
+{% endblock %}
