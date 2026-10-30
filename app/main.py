@@ -1,11 +1,24 @@
 from app.models import TaskCreate, TaskStatus, TaskUpdate, Task, TaskPriority, Tittle
-from fastapi import FastAPI, HTTPException, status
+from fastapi import FastAPI, HTTPException, status, Request, Form
 from datetime import date
+from pathlib import Path
+from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
+from typing import Annotated
+
+APP_DIR = Path(__file__).parent
+PROJECT_ROOT = APP_DIR.parent
+templates = Jinja2Templates(directory=APP_DIR / "templates")
+
 app = FastAPI(title="Task Manager", description="A simple task manager API")
 
 tasks: dict[int, Task] = {}
 
+app.mount("/static", StaticFiles(directory=PROJECT_ROOT/"static"), name="static")
+
 def seed_tasks() -> None:
+  
     tasks.clear()
     tasks[1] = Task(
         id=1,
@@ -64,12 +77,49 @@ def seed_tasks() -> None:
 
 seed_tasks()
 
+@app.get("/", response_class=HTMLResponse)
+async def tasks_page(request: Request):
+    return templates.TemplateResponse(
+        request=request,
+        name="tasks.html",
+        context={"tasks": list(tasks.values())},
+    )
+
+def save_task(task: TaskCreate) -> Task:
+  new_id = max(tasks, default=0) + 1
+  task = Task(id=new_id, **task.model_dump())
+  tasks[new_id] = task
+  return task
+
 @app.post("/tasks", status_code = status.HTTP_201_CREATED)
 async def create_task(task: TaskCreate) -> Task:
-    new_id = max(tasks, default=0) + 1
-    task = Task(id=new_id, **task.model_dump())
-    tasks[new_id] = task
-    return task
+    return save_task(task)
+
+@app.post("/ui/tasks")
+async def create_task_from_form(
+    title: Annotated[str, Form()],
+    description: Annotated[str, Form()] = "",
+    task_status: Annotated[str, Form()] = "todo",
+    priority: Annotated[str, Form()] = "low",
+    tags: Annotated[str, Form()] = "",
+):
+    tag_list = [
+        tag.strip()
+        for tag in tags.split(",")
+        if tag.strip()
+    ]
+
+    task_data = TaskCreate(
+        title=title,
+        description=description,
+        status=task_status,
+        priority=priority,
+        tags=tag_list,
+    )
+
+    save_task(task_data)
+
+    return RedirectResponse(url="/", status_code=303)
 
 
 @app.get("/tasks")
