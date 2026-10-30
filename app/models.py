@@ -25,7 +25,7 @@ class TaskCreate(BaseModel):
   description: Description = ""
   status: TaskStatus = 'todo'
   priority: TaskPriority = "low"
-  tags: list = []
+  tags: list[str] = Field(default_factory=list)
   created_at: Date = Field(default_factory=date.today)
 
 
