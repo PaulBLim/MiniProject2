@@ -69,16 +69,20 @@ class MongoTaskRepository(TaskRepository):
         ]
       return [_clean(task) for task in self.tasks_collection.find(query).sort("_id", 1)]
 
-  def update_task(self, id: int, task_update: TaskUpdate) -> Task:
-    if "created_at" not in task_update.model_fields_set:
-      task_update["created_at"] = date.today()
-    result = self.tasks_collection.replace_one({"_id": id}, task_update.model_dump())
-    return result.matched_count > 0, _to_task(result.raw_result["value"]) if result.matched_count > 0 else None
-
-  def delete_task(self, id: int) -> None:
+  def delete_task(self, id: int) -> bool:
     result = self.tasks_collection.delete_one({"_id": id})
     return result.deleted_count > 0
 
   def delete_task_by_title(self, title: Tittle) -> None:
     result = self.tasks_collection.delete_one({"title": title})
     return result.deleted_count > 0
+
+  def update_task(self, id: int, task_update: TaskUpdate) -> Task | bool:
+    created_at = task_update.created_at if task_update.created_at is not None else date.today()
+    created_at = datetime.combine(created_at, datetime.min.time())
+    replacement = task_update.model_dump(exclude_unset=True, exclude_none=True)
+    updated = self.tasks_collection.find_one_and_update({"_id": id}, {"$set": replacement}, return_document=ReturnDocument.AFTER)
+    return _to_task(updated) if updated is not None else False
+    
+
+  

@@ -20,7 +20,11 @@ repository: TaskRepository = MongoTaskRepository()
 
 app.mount("/static", StaticFiles(directory=PROJECT_ROOT/"static"), name="static")
 
-seed_tasks()
+#seed_tasks()
+
+@app.get("/")
+def root():
+    return {"message": "Welcome to the Task Manager API"}
 
 @app.get("/", response_class=HTMLResponse)
 async def tasks_page(request: Request):
@@ -90,7 +94,7 @@ async def delete_task(task_id: int) -> dict:
   if not matches:
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Task not found")
   repository.delete_task(task_id)
-  return {"message": "Task deleted successfully", "task": matches[0]["title"]}
+  return {"message": "Task deleted successfully", "task": matches.title}
 
 @app.delete("/tasks/title/{task_title}")
 async def delete_task_by_title(task_title: Tittle) -> dict:
