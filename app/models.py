@@ -12,10 +12,10 @@ def title_validator(title: str) -> str:
     raise ValueError("Title cannot be empty")
   return title
 
-def date_validator(date: date) -> date:
-  if date > date.today():
+def date_validator(value: date) -> date:
+  if value > date.today():
     raise ValueError("Date cannot be in the future")
-  return date
+  return value
 
 Tittle = Annotated[str, Field(min_length=1, max_length=50), AfterValidator(title_validator)]
 Date = Annotated[date, AfterValidator(date_validator)]
